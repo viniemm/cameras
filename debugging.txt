@@ -1,0 +1,4 @@
+cameras.Screenshot
+1. Constructor was private. Changed to public
+2. pixels was boolean[][]. changed to List<List<Boolean>> pixels
+3. Removed redundant method getPixels(). Inbuilt pixels() will do the same job.
