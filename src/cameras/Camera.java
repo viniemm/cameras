@@ -9,22 +9,24 @@ public class Camera {
 	private final List<ScreenShot> data;
 	private final Boolean isSide;
 
-	public ScreenShot getTrueScreenshot() {
-		return trueScreenshot;
-	}
 
-	private final ScreenShot trueScreenshot = null;
+
+	private final ScreenShot trueScreenshot;
 	private int diffCounter;
 
 	private final static int MAX_DIFF = 1;
 
-	private Camera(ScreenShot trueScreenshot, boolean isSide) {
+	Camera(ScreenShot trueScreenshot, boolean isSide) {
+		this.trueScreenshot = trueScreenshot;
 		this.data = new ArrayList<>(List.of(this.trueScreenshot));
 		this.isSide = isSide;
-		diffCounter = 0;
+		this.diffCounter = 0;
 	}
 
-	public boolean isSide() {
+	public ScreenShot getTrueScreenshot() {
+		return trueScreenshot;
+	}
+	public boolean getIsSide() {
 		return isSide;
 	}
 
@@ -36,7 +38,7 @@ public class Camera {
 		ScreenShot filteredS = newS;
 		data.add(newS);
 
-		if(isSide()) filteredS = ScreenShot.removeFloat(filteredS);
+		if(getIsSide()) filteredS = ScreenShot.removeFloat(filteredS);
 
 		if(ScreenShot.isShifted(trueScreenshot, filteredS)) {
 			diffCounter = 0;
@@ -125,8 +127,8 @@ public class Camera {
 	@Override
 	public boolean equals(Object other) {
 		if(other instanceof Camera) {
-			return this.getTrueScreenshot() == ((Camera) other).getTrueScreenshot()
-					&& this.isSide() == ((Camera) other).isSide();
+			return this.getTrueScreenshot().equals(((Camera) other).getTrueScreenshot())
+					&& this.getIsSide().equals(((Camera) other).getIsSide());
 		}
 		else return false;
 	}

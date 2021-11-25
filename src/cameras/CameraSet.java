@@ -1,6 +1,9 @@
 package cameras;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.IntStream;
 
 public class CameraSet {
@@ -32,8 +35,7 @@ public class CameraSet {
 			getSideCam().addData(shot1);
 			getFrontCam().addData(shot2);
 			getTopCam().addData(shot3);
-		}
-		catch(Camera.ChangeDetectedException e) {
+		} catch (Camera.ChangeDetectedException e) {
 			throw new IllegalArgumentException(e);
 		}
 
@@ -48,6 +50,16 @@ public class CameraSet {
 		private int[][] packages;
 		private int height;
 
+		private static Boolean[] apply(int[] row) {
+			List<Boolean> result = new ArrayList<>();
+			for (int i : row) {
+				if (i>0){
+					result.add(true);
+				}
+			}
+			return result.toArray(new Boolean[0]);
+		}
+
 		public Builder setHeight(int height) {
 			this.height = height;
 			return this;
@@ -60,35 +72,87 @@ public class CameraSet {
 		}
 
 		private void validate(int[][] packages) {
-			// Why need validation smh QA
+			Objects.requireNonNull(packages);
+			for (int[] aPackage : packages) {
+				IntStream.range(0, packages[0].length).filter(curCol -> aPackage[curCol] < 0).forEach(curCol -> {
+					throw new IllegalArgumentException("The height of packages cannot be less that 0");
+				});
+				// Why need validation smh QA
+			}
 		}
+//
+//		private int applyAsInt(int i) {
+//			boolean seen = false;
+//			int best = 0;
+//			for (int[] row : packages) {
+//				int j = row[i];
+//				if (!seen || j > best) {
+//					seen = true;
+//					best = j;
+//				}
+//			}
+//			return seen ? best : 0;
+//		}
+//
+//		private Boolean[] apply(int count) {
+//			List<Boolean> list = new ArrayList<>();
+//			int bound = height;
+//			for (int i = 0; i < bound; i++) {
+//				Boolean aBoolean = i < count + 1;
+//				list.add(aBoolean);
+//			}
+//			return list.toArray(new Boolean[0]);
+//		}
+//
+//		private ScreenShot setSide(){
+//			List<Boolean[]> list = new ArrayList<>();
+//			for (int[] arr : packages) {
+//				boolean seen = false;
+//				int best = 0;
+//				for (int i : arr) {
+//					if (!seen || i > best) {
+//						seen = true;
+//						best = i;
+//					}
+//				}
+//				int count = seen ? best : 0;
+//				Boolean[] booleans = apply(count);
+//				list.add(booleans);
+//			}
+//			return ScreenShot.of(list.toArray(new Boolean[0][]));
+//		}
 
 		public CameraSet build() {
 
+
+
 			// Such an over-complicated algorithm! Really hope I didn't mess up anywhere
 			// I imagine the Screenshot for sided as being flipped 90 deg for ease of implementation
-
-			ScreenShot front = ScreenShot.of(IntStream.range(0, packages.length)
-					.map(i -> Arrays.stream(packages)
-							.mapToInt(row -> row[i])
-							.max()
-							.orElse(0))
-					.mapToObj(count -> IntStream.range(0, height).mapToObj(i -> i <= count).toArray(Boolean[]::new))
-					.toArray(Boolean[][]::new));
-
-			ScreenShot side = ScreenShot.of((Arrays.stream(packages)
-					.mapToInt(arr -> Arrays.stream(arr).max().orElse(0)))
-					.mapToObj(count -> IntStream.range(0, height).mapToObj(i -> i <= count).toArray(Boolean[]::new))
-					.toArray(Boolean[][]::new));
-
-			ScreenShot top = ScreenShot.of(Arrays.stream(packages)
-					.map(row -> Arrays.stream(row).mapToObj(i -> i > 0).toArray(Boolean[]::new))
-					.toArray(Boolean[][]::new));
-
-			return new CameraSet(Camera.getBuilder().setScreenShot(front).setSide(true).build(),
-					Camera.getBuilder().setScreenShot(top).setSide(true).build(),
-					Camera.getBuilder().setScreenShot(side).setSide(false).build());
+//
+//			List<Boolean[]> result = new ArrayList<>();
+//			int bound = packages.length;
+//			for (int i = 0; i < bound; i++) {
+//				int applyAsInt = applyAsInt(i);
+//				Boolean[] booleans = apply(applyAsInt);
+//				result.add(booleans);
+//			}
+//			ScreenShot front = ScreenShot.of(result.toArray(new Boolean[0][]));
+//
+//			ScreenShot side = setSide();
+//
+//			List<Boolean[]> list = new ArrayList<>();
+//			for (int[] ints : packages) {
+//				Boolean[] apply = apply(ints);
+//				list.add(apply);
+//			}
+//			ScreenShot top = ScreenShot.of(list.toArray(new Boolean[0][]));
+//
+//			return new CameraSet(Camera.getBuilder().setScreenShot(front).setSide(true).build(),
+//				Camera.getBuilder().setScreenShot(top).setSide(true).build(),
+//				Camera.getBuilder().setScreenShot(side).setSide(false).build());
 		}
+
+
 	}
 
 }
