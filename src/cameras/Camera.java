@@ -9,24 +9,23 @@ public class Camera {
 	private final List<ScreenShot> data;
 	private final Boolean isSide;
 
-
+	public ScreenShot getTrueScreenshot() {
+		return trueScreenshot;
+	}
 
 	private final ScreenShot trueScreenshot;
 	private int diffCounter;
 
 	private final static int MAX_DIFF = 1;
 
-	Camera(ScreenShot trueScreenshot, boolean isSide) {
+	private Camera(ScreenShot trueScreenshot, boolean isSide) {
 		this.trueScreenshot = trueScreenshot;
 		this.data = new ArrayList<>(List.of(this.trueScreenshot));
 		this.isSide = isSide;
-		this.diffCounter = 0;
+		diffCounter = 0;
 	}
 
-	public ScreenShot getTrueScreenshot() {
-		return trueScreenshot;
-	}
-	public boolean getIsSide() {
+	public boolean isSide() {
 		return isSide;
 	}
 
@@ -35,19 +34,22 @@ public class Camera {
 	}
 
 	public void addData(ScreenShot newS) throws ChangeDetectedException {
+		Objects.requireNonNull(newS);
+		newS.validate();
 		ScreenShot filteredS = newS;
 		data.add(newS);
-
-		if(getIsSide()) filteredS = ScreenShot.removeFloat(filteredS);
-
-		if(ScreenShot.isShifted(trueScreenshot, filteredS)) {
-			diffCounter = 0;
+		if (isSide()) {
+			filteredS = ScreenShot.removeFloat(filteredS);
 		}
-		else if(diffCounter ++ > MAX_DIFF) {
+
+		if (ScreenShot.isShifted(trueScreenshot, filteredS)) {
+			diffCounter = 0;
+//			changed diffCounter++ to ++dffCounter because increment was needed before checking conditional.
+		} else if (++diffCounter > MAX_DIFF) {
 			throw Camera.getExceptionBuilder()
-					.setBefore(trueScreenshot)
-					.setAfter(newS)
-					.build();
+				.setBefore(trueScreenshot)
+				.setAfter(newS)
+				.build();
 		}
 
 	}
@@ -62,11 +64,17 @@ public class Camera {
 
 		public Builder setScreenShot(ScreenShot data) {
 			// No validation needed. Sure that the user did the right thing
+			// Validation definitely needed. Added requireNonNull and package-private validate method
+			if (Objects.isNull(data)) {
+				throw new IllegalArgumentException();
+			}
+			data.validate();
 			this.data = data;
 			return this;
 		}
 
 		public Builder setSide(Boolean side) {
+			Objects.requireNonNull(side);
 			isSide = side;
 			return this;
 		}
@@ -126,11 +134,10 @@ public class Camera {
 
 	@Override
 	public boolean equals(Object other) {
-		if(other instanceof Camera) {
+		if (other instanceof Camera) {
 			return this.getTrueScreenshot().equals(((Camera) other).getTrueScreenshot())
-					&& this.getIsSide().equals(((Camera) other).getIsSide());
-		}
-		else return false;
+				&& this.isSide() == ((Camera) other).isSide();
+		} else return false;
 	}
 
 }

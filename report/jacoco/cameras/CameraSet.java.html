@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CameraSet.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">map</a> &gt; <a href="index.source.html" class="el_package">cameras</a> &gt; <span class="el_source">CameraSet.java</span></div><h1>CameraSet.java</h1><pre class="source lang-java linenums">package cameras;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.IntStream;
+
+public class CameraSet {
+
+	private final Camera frontCam;
+	private final Camera sideCam;
+	private final Camera topCam;
+
+<span class="fc" id="L14">	private CameraSet(Camera frontCam, Camera sideCam, Camera topCam) {</span>
+<span class="fc" id="L15">		this.frontCam = frontCam;</span>
+<span class="fc" id="L16">		this.sideCam = sideCam;</span>
+<span class="fc" id="L17">		this.topCam = topCam;</span>
+<span class="fc" id="L18">	}</span>
+
+	public Camera getFrontCam() {
+<span class="fc" id="L21">		return frontCam;</span>
+	}
+
+	public Camera getSideCam() {
+<span class="fc" id="L25">		return sideCam;</span>
+	}
+
+	public Camera getTopCam() {
+<span class="fc" id="L29">		return topCam;</span>
+	}
+
+	public void addData(ScreenShot shot1, ScreenShot shot2, ScreenShot shot3) {
+		try {
+<span class="fc" id="L34">			getSideCam().addData(shot1);</span>
+<span class="fc" id="L35">			getFrontCam().addData(shot2);</span>
+<span class="fc" id="L36">			getTopCam().addData(shot3);</span>
+<span class="fc" id="L37">		} catch (Camera.ChangeDetectedException e) {</span>
+<span class="fc" id="L38">			throw new IllegalArgumentException(e);</span>
+<span class="fc" id="L39">		}</span>
+
+<span class="fc" id="L41">	}</span>
+
+	public static Builder getBuilder() {
+<span class="fc" id="L44">		return new Builder();</span>
+	}
+
+<span class="pc bpc" id="L47" title="1 of 2 branches missed.">	public static final class Builder {</span>
+
+		private int[][] packages;
+		private int height;
+
+		public Builder setHeight(int height) {
+<span class="fc" id="L53">			this.height = height;</span>
+<span class="fc" id="L54">			return this;</span>
+		}
+
+		public Builder setPackages(int[][] packages) {
+<span class="fc" id="L58">			this.packages = packages;</span>
+<span class="fc" id="L59">			return this;</span>
+		}
+
+		private CameraSet validate(CameraSet camSet) {
+			// Why need validation smh QA
+			// Validation added
+<span class="pc bpc" id="L65" title="2 of 4 branches missed.">			assert (height &gt; 0);</span>
+<span class="fc" id="L66">			camSet.frontCam.getData().forEach(sc -&gt; sc.validate());</span>
+<span class="fc" id="L67">			camSet.sideCam.getData().forEach(sc -&gt; sc.validate());</span>
+<span class="fc" id="L68">			camSet.topCam.getData().forEach(sc -&gt; sc.validate());</span>
+//			Arrays.stream(packages).forEach(col -&gt; Arrays.stream(col).forEach(box -&gt; {
+//				if (box &gt; height || box &lt; 0) {
+//					System.out.println(box);
+//					throw new IllegalArgumentException();
+//				}
+//			}));
+<span class="fc" id="L75">			return camSet;</span>
+		}
+
+		public CameraSet build() {
+
+			// Minor changes for front. i should be &lt; count and not &lt;= because indexing starts at 0.
+			// IntStream.range should be inclusive of packages.length.
+<span class="fc" id="L82">			ScreenShot front = ScreenShot.of(IntStream.range(0, packages.length + 1)</span>
+<span class="fc" id="L83">				.map(i -&gt; Arrays.stream(packages)</span>
+<span class="fc" id="L84">					.mapToInt(row -&gt; row[i])</span>
+<span class="fc" id="L85">					.max()</span>
+<span class="fc" id="L86">					.orElse(0))</span>
+<span class="fc bfc" id="L87" title="All 2 branches covered.">				.mapToObj(count -&gt; IntStream.range(0, height).mapToObj(i -&gt; i &lt; count).toArray(Boolean[]::new))</span>
+<span class="fc" id="L88">				.toArray(Boolean[][]::new));</span>
+
+			// Minor changes for side. i should be &lt; count and not &lt;= because indexing starts at 0.
+<span class="fc" id="L91">			ScreenShot side = ScreenShot.of((Arrays.stream(packages)</span>
+<span class="fc" id="L92">				.mapToInt(arr -&gt; Arrays.stream(arr).max().orElse(0)))</span>
+<span class="fc bfc" id="L93" title="All 2 branches covered.">				.mapToObj(count -&gt; IntStream.range(0, height).mapToObj(i -&gt; i &lt; count).toArray(Boolean[]::new))</span>
+<span class="fc" id="L94">				.toArray(Boolean[][]::new));</span>
+
+<span class="fc" id="L96">			ScreenShot top = ScreenShot.of(Arrays.stream(packages)</span>
+<span class="fc bfc" id="L97" title="All 2 branches covered.">				.map(row -&gt; Arrays.stream(row).mapToObj(i -&gt; i &gt; 0).toArray(Boolean[]::new))</span>
+<span class="fc" id="L98">				.toArray(Boolean[][]::new));</span>
+
+			// side and top wer flipped
+<span class="fc" id="L101">			return validate(new CameraSet(Camera.getBuilder().setScreenShot(front).setSide(true).build(),</span>
+<span class="fc" id="L102">				Camera.getBuilder().setScreenShot(side).setSide(true).build(),</span>
+<span class="fc" id="L103">				Camera.getBuilder().setScreenShot(top).setSide(false).build()));</span>
+		}
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>
